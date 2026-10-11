@@ -1,0 +1,190 @@
+import java.util.ArrayList;
+import java.util.List;
+abstract class Animal {
+    private String name;
+
+    public Animal(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " '" + name + "'";
+    }
+}
+
+abstract class Mammal extends Animal {
+    public Mammal(String name) {
+        super(name);
+    }
+}
+
+abstract class Bird extends Animal {
+    public Bird(String name) {
+        super(name);
+    }
+}
+
+class Lion extends Mammal {
+    public Lion(String name) {
+        super(name);
+    }
+}
+
+abstract class Ungulate extends Mammal {
+    public Ungulate(String name) {
+        super(name);
+    }
+}
+
+class Zebra extends Ungulate {
+    public Zebra(String name) {
+        super(name);
+    }
+}
+
+class Giraffe extends Ungulate {
+    public Giraffe(String name) {
+        super(name);
+    }
+}
+
+class Eagle extends Bird {
+    public Eagle(String name) {
+        super(name);
+    }
+}
+
+
+class EnclosureFullException extends Exception {
+    public EnclosureFullException(String message) {
+        super(message);
+    }
+}
+
+class AnimalNotFoundException extends Exception {
+    public AnimalNotFoundException(String message) {
+        super(message);
+    }
+}
+
+
+// Базовий узагальнений клас Enclosure<T extends Animal>
+abstract class Enclosure<T extends Animal> {
+    private int maxCapacity;
+    private List<T> animals;
+
+    public Enclosure(int maxCapacity) {
+        this.maxCapacity = maxCapacity;
+        this.animals = new ArrayList<>();
+    }
+
+    // Отримання максимальної кількості місць
+    public int getMaxCapacity() {
+        return maxCapacity;
+    }
+
+    // Отримання кількості зайнятих місць
+    public int getOccupiedPlaces() {
+        return animals.size();
+    }
+
+    // Додавання тварини у вольєр
+    public void addAnimal(T animal) throws EnclosureFullException {
+        if (animals.size() >= maxCapacity) {
+            throw new EnclosureFullException("Помилка: Вольєр заповнений! Неможливо додати " + animal);
+        }
+        animals.add(animal);
+        System.out.println("У вольєр додано: " + animal);
+    }
+
+    public void removeAnimal(T animal) throws AnimalNotFoundException {
+        if (!animals.contains(animal)) {
+            throw new AnimalNotFoundException("Помилка: Тварину " + animal + " не знайдено у вольєрi!");
+        }
+        animals.remove(animal);
+        System.out.println("З вольєра вилучено: " + animal);
+    }
+
+    public void showAnimals() {
+        System.out.println(getClass().getSimpleName() + " (Зайнято: " + getOccupiedPlaces() + "/" + maxCapacity + "): " + animals);
+    }
+}
+
+abstract class MammalEnclosure<T extends Mammal> extends Enclosure<T> {
+    public MammalEnclosure(int maxCapacity) {
+        super(maxCapacity);
+    }
+}
+
+class BirdEnclosure<T extends Bird> extends Enclosure<T> {
+    public BirdEnclosure(int maxCapacity) {
+        super(maxCapacity);
+    }
+}
+class LionEnclosure extends MammalEnclosure<Lion> {
+    public LionEnclosure(int maxCapacity) {
+        super(maxCapacity);
+    }
+}
+class UngulateEnclosure<T extends Ungulate> extends MammalEnclosure<T> {
+    public UngulateEnclosure(int maxCapacity) {
+        super(maxCapacity);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("=== 1. ТЕСТУВАННЯ ВОЛЬЄРА ДЛЯ ЛЕВIВ ===");
+        LionEnclosure lionEnclosure = new LionEnclosure(2);
+        Lion lion1 = new Lion("Сiмба");
+        Lion lion2 = new Lion("Муфаса");
+        Lion lion3 = new Lion("Шрам");
+
+        try {
+            lionEnclosure.addAnimal(lion1);
+            lionEnclosure.addAnimal(lion2);
+            lionEnclosure.showAnimals();
+
+              lionEnclosure.addAnimal(lion3);
+        } catch (EnclosureFullException e) {
+            System.err.println(e.getMessage());
+        }
+
+        System.out.println("\n=== 2. ТЕСТУВАННЯ ВОЛЬЄРА ДЛЯ КОПИТНИХ ===");
+        // Вольєр для будь-яких копитних
+        UngulateEnclosure<Ungulate> ungulateEnclosure = new UngulateEnclosure<>(3);
+        Zebra zebra = new Zebra("Мартi");
+        Giraffe giraffe = new Giraffe("Мелман");
+
+        try {
+            ungulateEnclosure.addAnimal(zebra);
+            ungulateEnclosure.addAnimal(giraffe);
+            ungulateEnclosure.showAnimals();
+
+            // Вилучення тварини
+            ungulateEnclosure.removeAnimal(zebra);
+            ungulateEnclosure.showAnimals();
+
+            // Спроба вилучити тварину, якої немає у вольєрі (викличе AnimalNotFoundException)
+            ungulateEnclosure.removeAnimal(zebra);
+        } catch (EnclosureFullException | AnimalNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+
+        System.out.println("\n=== 3. ТЕСТУВАННЯ ВОЛЬЄРА ДЛЯ ПТАХIВ ===");
+        BirdEnclosure<Bird> birdEnclosure = new BirdEnclosure<>(2);
+        Eagle eagle = new Eagle("Сем");
+
+        try {
+            birdEnclosure.addAnimal(eagle);
+            birdEnclosure.showAnimals();
+        } catch (EnclosureFullException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+}
